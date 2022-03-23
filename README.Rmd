@@ -1,0 +1,52 @@
+---
+title: "smoothf.cpp"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+## Smoothf.cpp
+Smoothf.cpp implements some smooth, differentiable approximations to max, min
+and range. Tests of these functions are implemented in R with the Rcpp package.
+Comparisons between actual min, max, and max-min are plotted.
+
+```{r}
+library(Rcpp)
+sourceCpp("smoothf.cpp")
+
+S_alpha(c(1,2,3,100),-10)#min
+S_alpha(c(1,2,3,100),0)#mean
+S_alpha(c(1,2,3,100),10)#max
+
+LogSumExp(c(1,2,3,100),-10)#min
+LogSumExp(c(1,2,3,100),10)#max
+
+p_norm(c(1,2,3,100),100)#max abs
+p_norm(c(1,2,3,-7),10)#max abs
+
+smooth_range(c(1,2,3,100),10)#range
+
+#actual
+random_samples<-matrix(sample(100,100,replace=T),ncol=10)
+mins<-apply(random_samples,2,min)
+maxs<-apply(random_samples,2,max)
+dranges<-apply(random_samples,2,function(x)diff(range(x)))
+#smooth approximates
+s.mins<-apply(random_samples,2,smooth_min)
+s.maxs<-apply(random_samples,2,smooth_max)
+s.dranges<-apply(random_samples,2,function(x)diff(smooth_range(x)))
+plot(mins,s.mins)
+abline(0,1)
+plot(maxs,s.maxs)
+abline(0,1)
+plot(dranges,s.dranges)
+abline(0,1)
+```
+
+The plots are approximately linear with slope 1 although the intercept does not appear to be zero
+as you'd want. This is because it overestimates the minimum and underestimates the maximum.
+
+
